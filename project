@@ -1,0 +1,140 @@
+import java.util.*;
+class taxi
+{
+    static int taxicount=0;
+    int id;
+    boolean booked;
+    char currentspot;
+    int freetime;
+    int totalearning;
+    List<String> trips;
+    
+    public void taxi()
+    {
+        booked=false;
+        currentspot='A';
+        freetime=6;
+        totalearning=0;
+        trips=new ArrayList<String>();
+        taxicount=taxicount+1;
+        id=taxicount;
+    }
+    public void setDetails(boolean booked,char currentspot,int freetime,int totalearning,String tripdetails)
+    {
+        this.booked=booked;
+        this.currentspot=currentspot;
+        this.freetime=freetime;
+        this.totalearning=totalearning;
+        this.trips.add(tripdetails);
+    }
+    public void printdetails()
+    {
+        System.out.println("taxi- "+this.id+ "totalearning- "+totalearning);
+        System.out.println(" customerId   startingPoint   endingPoint   pickupTime   dropTime   amount");
+        for(String trip:trips)
+        {
+            System.out.println(id+ "      "+trip);
+        }
+        System.out.println("-----------------------------------------");
+    }
+    public static List<taxi> createTaxis(int n)
+    {
+        List<taxi> taxis=new ArrayList<taxi>();
+        for(int i=0;i<n;i++){
+            taxi t=new taxi();
+            taxis.add(t);
+        }
+        return taxis;
+    }
+    public static List<taxi> getfreetaxis(List<taxi> taxis,char startingPoint,int pickupTime)
+    {
+        List<taxi> freetaxis=new ArrayList<taxi>();
+        for(taxi t:taxis)
+        {
+            if(t.freetime<=pickupTime && (Math.abs((t.currentspot-'0')-(startingPoint-'0'))<= (pickupTime - t.freetime)))
+            {
+                freetaxis.add(t);
+            }
+        }
+        return freetaxis;
+    }
+    public static void booktaxi(int customerId,char startingPoint,char endingPoint,int pickupTime,List<taxi> freetaxis)
+    {
+        int min=999;
+        int distancebetweenstartandend=0;
+        int earning=0;
+        int nextfreetime=0;
+        char nextspot='Z';
+        taxi bookedtaxi=null;
+        String tripdetails="";
+        for(taxi t:freetaxis)
+        {
+            int distancebetweencustomerandtaxi=Math.abs((endingPoint-'0')-(t.currentspot))*15;
+            if(distancebetweencustomerandtaxi<min)
+            {
+                bookedtaxi=t;
+                distancebetweenstartandend=Math.abs((startingPoint-'0')-(endingPoint-'0'))*15;
+                earning=(distancebetweenstartandend-5)*10+50;
+                int dropTime=pickupTime+distancebetweenstartandend/15;
+                nextfreetime=dropTime;
+                tripdetails=customerId+"      "+startingPoint+"        "+endingPoint+"        "+pickupTime+"         "+dropTime+"         "+earning;
+            }
+        }
+        bookedtaxi.setDetails(true,nextspot,nextfreetime,bookedtaxi.totalearning+earning,tripdetails);
+        System.out.println("Booking ID : "+customerId);
+        System.out.println("Allotted taxi : "+bookedtaxi.id);
+        
+    }
+    public static void main(String [] args)
+    {
+        List<taxi> taxis=createTaxis(4);
+        Scanner s = new Scanner(System.in);
+        int id=1;
+        while(true)
+        {
+            System.out.println("0->book taxi");
+            System.out.println("1->print taxi details");
+            int choice=s.nextInt();
+            switch(choice)
+            {
+                case 0:
+                    {
+                        int customerId=id;
+                        //System.out.println("customerId : ");
+                        //int customerId=s.nextInt();
+                        System.out.println("startingPoint : ");
+                        char startingPoint=s.next().charAt(0);
+                        System.out.println("endingPoint : ");
+                        char endingPoint=s.next().charAt(0);
+                        System.out.println("pickupTime : ");
+                        int pickupTime=s.nextInt();
+                
+                        if(startingPoint<'A' || startingPoint>'E' || endingPoint<'A' || endingPoint>'E')
+                        {
+                            System.out.println("Invalid startingPoint and endingPoint");
+                        }
+                        List<taxi> freetaxis=getfreetaxis(taxis,startingPoint    ,pickupTime);
+                        if(freetaxis.size()==0)
+                        {
+                            System.out.println("no taxi can be allocated");
+                        }
+                        Collections.sort(freetaxis,(a,b)->a.totalearning-b.totalearning);
+                        booktaxi(customerId,startingPoint,endingPoint,pickupTime,freetaxis);
+                        id++;
+                        break;
+                    }
+                    case 1:
+                        {
+                            for(taxi t:taxis)
+                            {
+                                t.printdetails();
+                            }
+                            break;
+                        }
+                        default:
+                            return;
+             }
+        }
+        
+    }
+}
